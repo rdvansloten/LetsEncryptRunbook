@@ -92,11 +92,11 @@ Write-Output "Starting wait period"
 Start-Sleep -s 60
 
 # Store certificate data (.pfx) in variable
-$certificateData = New-PACertificate $domainName
+Write-Output "New-PACertificate"
+New-PACertificate $domainName
 
-if (!$certificateData) {
-    $certificateData = Submit-Renewal $domainName
-}
+Write-Output "Get-PACertificate"
+Get-PACertificate | fl
 
 # Clean up HTTP challenge blob after usage
 Remove-AzureStorageBlob -Container $containerName -Context $storageAccountContext -Blob $blobName
