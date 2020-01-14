@@ -124,6 +124,9 @@ Write-Output "Available certificates on $($appGatewayName): $($certificateList)"
 if ($certificateList -contains $certificateName) {
     # Replace existing certificate
     Write-Output "Replacing existing certificate $certificateName"
+    Write-Output $certificateData.PfxFullChain
+    Write-Output "---"
+    Write-Output $certificateData
     Set-AzureRmApplicationGatewaySSLCertificate -Name $certificateName -ApplicationGateway $appGatewayData -CertificateFile $certificateData.PfxFullChain -Password $certificateData.PfxPass
 } else {
     # Create new certificate
