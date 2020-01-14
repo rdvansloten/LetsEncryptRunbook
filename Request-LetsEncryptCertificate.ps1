@@ -33,16 +33,7 @@ param(
     [string] $automationAccountCredential,
 
     [Parameter(mandatory=$false)]
-    [string] $stagingMode,
-
-    [Parameter(mandatory=$false)]
-    [string] $useFrontDoor,
-
-    [Parameter(mandatory=$false)]
-    [string] $useFrontDoor,
-
-    [Parameter(mandatory=$false)]
-    [string] $useFrontDoor,
+    [string] $stagingMode
 )
 
 # Set up Azure RunAs connection
