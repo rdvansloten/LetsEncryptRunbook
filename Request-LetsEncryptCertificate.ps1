@@ -75,11 +75,11 @@ if ($stagingMode) {
 New-PAAccount -AcceptTOS -Contact $emailAddress -KeyLength 2048 -Force
 
 # Order a new/existing domain, with or without custom password
-if ($certificatePassword) {
-    New-PAOrder $domain -PfxPass $certificatePassword -Force 
-} else {
+#if ($certificatePassword) {
+#    New-PAOrder $domain -PfxPass $certificatePassword -Force 
+#} else {
     New-PAOrder $domain -Force 
-}
+#}
 
 # Retrieve authorizations and extract HTTP01 token
 $authList = Get-PAOrder | Get-PAAuthorizations
