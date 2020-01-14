@@ -107,7 +107,7 @@ Write-Output "Get-PACertificate"
 Get-PACertificate | fl
 
 # Clean up HTTP challenge blob after usage
-Remove-AzureStorageBlob -Container $containerName -Context $storageAccountContext -Blob $blobName
+# Remove-AzureStorageBlob -Container $containerName -Context $storageAccountContext -Blob $blobName
 
 # Set configuration to push to Application Gateway
 $appGatewayData = Get-AzureRmApplicationGateway -ResourceGroupName $appGatewayResourceGroupName -Name $appGatewayName
@@ -121,6 +121,7 @@ if ($certificateList -contains $certificateName) {
     # Replace existing certificate
     Write-Output "Replacing existing certificate $certificateName"
     Write-Output $certificateData.PfxFullChain
+    Write-Output $certificateData.PfxPass
     Write-Output "---"
     Write-Output $certificateData
     Set-AzureRmApplicationGatewaySSLCertificate -Name $certificateName -ApplicationGateway $appGatewayData -CertificateFile $certificateData.PfxFullChain -Password $certificateData.PfxPass
