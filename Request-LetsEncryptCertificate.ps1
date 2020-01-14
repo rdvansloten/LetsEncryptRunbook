@@ -69,6 +69,9 @@ catch {
 if ($stagingMode) { 
     Write-Output "Using LetsEncrypt Staging server"
     Set-PAServer LE_STAGE
+} else {
+    Write-Output "Using LetsEncrypt Production server"
+    Set-PAServer LE_PROD
 }
 
 # Create a new account
