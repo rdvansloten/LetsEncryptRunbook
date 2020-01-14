@@ -61,9 +61,9 @@ catch {
 }
 
 # Get Azure Automation Credential with .pfx password
-if ($automationAccountCredential -and $automationAccountName -and $automationAccountResourceGroupName) {
-    $certificatePassword = Get-AzAutomationCredential -ResourceGroupName $automationAccountResourceGroupName -AutomationAccountName $automationAccountName -Name $automationCredential | ConvertTo-SecureString -Force -AsPlainText
-}
+#if ($automationAccountCredential -and $automationAccountName -and $automationAccountResourceGroupName) {
+#    $certificatePassword = Get-AutomationPSCredential  
+#}
 
 # Retrieves from LetsEncrypt Staging server, for testing purposes. Not a valid certificate. Only fires if variable is set
 if ($stagingMode) { 
