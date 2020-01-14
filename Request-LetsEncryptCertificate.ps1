@@ -24,15 +24,6 @@ param(
     [string] $certificateName,
 
     [Parameter(mandatory=$false)]
-    [string] $automationAccountResourceGroupName,
-
-    [Parameter(mandatory=$false)]
-    [string] $automationAccountName,
-
-    [Parameter(mandatory=$false)]
-    [string] $automationAccountCredential,
-
-    [Parameter(mandatory=$false)]
     [string] $stagingMode
 )
 
@@ -60,10 +51,6 @@ catch {
     }
 }
 
-# Get Azure Automation Credential with .pfx password
-#if ($automationAccountCredential -and $automationAccountName -and $automationAccountResourceGroupName) {
-#    $certificatePassword = Get-AutomationPSCredential  
-#}
 
 # Retrieves from LetsEncrypt Staging server, for testing purposes. Not a valid certificate. Only fires if variable is set
 if ($stagingMode) { 
@@ -77,12 +64,9 @@ if ($stagingMode) {
 # Create a new account
 New-PAAccount -AcceptTOS -Contact $emailAddress -KeyLength 2048 -Force
 
-# Order a new/existing domain, with or without custom password
-#if ($certificatePassword) {
-#    New-PAOrder $domain -PfxPass $certificatePassword -Force 
-#} else {
-    New-PAOrder $domain -Force 
-#}
+# Order certificate
+$newOrder = New-PAOrder $domainName -Force 
+Write-Output "New order: $newOrder"
 
 # Retrieve authorizations and extract HTTP01 token
 $authList = Get-PAOrder | Get-PAAuthorizations
