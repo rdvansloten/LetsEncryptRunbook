@@ -89,7 +89,7 @@ $authList.HTTP01Url | Send-ChallengeAck
 
 # Wait sane period of time for Challenge to resolve (dirty fix)
 Write-Output "Starting wait period"
-Start-Sleep -s 20
+Start-Sleep -s 60
 
 # Store certificate data (.pfx) in variable
 $certificateData = New-PACertificate $domainName
