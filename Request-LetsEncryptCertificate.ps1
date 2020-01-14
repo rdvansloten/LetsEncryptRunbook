@@ -71,6 +71,7 @@ Write-Output "New order: $newOrder"
 # Retrieve authorizations and extract HTTP01 token
 $authList = Get-PAOrder | Get-PAAuthorizations
 $authData = $authList | Select-Object @{L='Body';E={Get-KeyAuthorization $_.HTTP01Token (Get-PAAccount)}},@{L='FileName';E={$($_.HTTP01Token)}}
+Write-Output $authData
 
 # Dump gathered info to local file for later usage
 $filePath = $env:TEMP + "\" + $authData.FileName
@@ -99,7 +100,7 @@ $certificateData = New-PACertificate $domainName
 
 if (!$certificateData) {
 Write-Output "Submit-Renewal"
-Submit-Renewal $domainName -NoSkipManualDns
+$certificateData = Submit-Renewal $domainName -NoSkipManualDns
 }
     
 
