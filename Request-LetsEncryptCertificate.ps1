@@ -99,7 +99,7 @@ $certificateData = New-PACertificate $domainName
 
 if (!$certificateData) {
 Write-Output "Submit-Renewal"
-Submit-Renewal $domainName
+Submit-Renewal $domainName -NoSkipManualDns
 }
     
 
