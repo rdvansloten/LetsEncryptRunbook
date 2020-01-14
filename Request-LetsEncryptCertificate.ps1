@@ -67,6 +67,7 @@ if ($automationAccountCredential -and $automationAccountName -and $automationAcc
 
 # Retrieves from LetsEncrypt Staging server, for testing purposes. Not a valid certificate. Only fires if variable is set
 if ($stagingMode) { 
+    Write-Output "Using LetsEncrypt Staging server"
     Set-PAServer LE_STAGE
 }
 
@@ -114,7 +115,7 @@ $appGatewayData = Get-AzureRmApplicationGateway -ResourceGroupName $appGatewayRe
 
 # Retrieve list of certificates
 $certificateList = Get-AzureRmApplicationGatewaySslCertificate -ApplicationGateway $appGatewayData
-Write-Output "Available certificates on $($appGatewayName): $certificateList"
+Write-Output "Available certificates on $($appGatewayName): $($certificateList.Name)"
 
 # check if certificate already exists
 if ($certificateList -contains $certificateName) {
