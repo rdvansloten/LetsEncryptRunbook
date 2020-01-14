@@ -114,8 +114,8 @@ Remove-AzureStorageBlob -Container $containerName -Context $storageAccountContex
 $appGatewayData = Get-AzureRmApplicationGateway -ResourceGroupName $appGatewayResourceGroupName -Name $appGatewayName
 
 # Retrieve list of certificates
-$certificateList = Get-AzureRmApplicationGatewaySslCertificate -ApplicationGateway $appGatewayData
-Write-Output "Available certificates on $($appGatewayName): $($certificateList.Name)"
+$certificateList = $(Get-AzureRmApplicationGatewaySslCertificate -ApplicationGateway $appGatewayData).Name
+Write-Output "Available certificates on $($appGatewayName): $($certificateList)"
 
 # check if certificate already exists
 if ($certificateList -contains $certificateName) {
