@@ -1,28 +1,48 @@
 param(
     [Parameter(mandatory=$true)]
     [string] $emailAddress,
+
     [Parameter(mandatory=$true)]
     [string] $domainName,
+
     [Parameter(mandatory=$true)]
     [string] $storageAccountResourceGroupName,
+
     [Parameter(mandatory=$true)]
     [string] $storageAccountName,
+
     [Parameter(mandatory=$true)]
     [string] $blobContainerName,
+
     [Parameter(mandatory=$true)]
     [string] $appGatewayResourceGroupName,
+
     [Parameter(mandatory=$true)]
     [string] $appGatewayName,
+
     [Parameter(mandatory=$true)]
     [string] $certificateName,
+
     [Parameter(mandatory=$false)]
     [string] $automationAccountResourceGroupName,
+
     [Parameter(mandatory=$false)]
     [string] $automationAccountName,
+
     [Parameter(mandatory=$false)]
     [string] $automationAccountCredential,
+
     [Parameter(mandatory=$false)]
-    [string] $stagingMode
+    [string] $stagingMode,
+
+    [Parameter(mandatory=$false)]
+    [string] $useFrontDoor,
+
+    [Parameter(mandatory=$false)]
+    [string] $useFrontDoor,
+
+    [Parameter(mandatory=$false)]
+    [string] $useFrontDoor,
 )
 
 # Set up Azure RunAs connection
@@ -89,7 +109,8 @@ Set-AzureStorageBlobContent -File $filePath -Container $containerName -Context $
 $authList.HTTP01Url | Send-ChallengeAck
 
 # Wait sane period of time for Challenge to resolve (dirty fix)
-Start-Sleep -s 60
+Write-Output "Starting wait period"
+Start-Sleep -s 20
 
 # Store certificate data (.pfx) in variable
 $certificateData = New-PACertificate $domainName
@@ -102,15 +123,19 @@ $appGatewayData = Get-AzureRmApplicationGateway -ResourceGroupName $appGatewayRe
 
 # Retrieve list of certificates
 $certificateList = Get-AzureRmApplicationGatewaySslCertificate -ApplicationGateway $appGatewayData
+Write-Output "Available certificates on $($appGatewayName): $certificateList"
 
 # check if certificate already exists
 if ($certificateList -contains $certificateName) {
     # Replace existing certificate
+    Write-Output "Replacing existing certificate $certificateName"
     Set-AzureRmApplicationGatewaySSLCertificate -Name $certificateName -ApplicationGateway $appGatewayData -CertificateFile $certificateData.PfxFullChain -Password $certificateData.PfxPass
 } else {
     # Create new certificate
-    Add-AzureRmApplicationGatewaySslCertificate -Name $certificateName  -ApplicationGateway $appGatewayData -CertificateFile $certificateData.PfxFullChain -Password $certificateData.PfxPass
+    Write-Output "Installing new certificate $certificateName"
+    Add-AzureRmApplicationGatewaySslCertificate -Name $certificateName -ApplicationGateway $appGatewayData -CertificateFile $certificateData.PfxFullChain -Password $certificateData.PfxPass
 }
 
 # Apply changes to Application Gateway
+Write-Output "Writing new configuration to $appGatewayName"
 Set-AzureRmApplicationGateway -ApplicationGateway $appGatewayData
