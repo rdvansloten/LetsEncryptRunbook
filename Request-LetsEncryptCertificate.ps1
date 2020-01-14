@@ -94,6 +94,10 @@ Start-Sleep -s 60
 # Store certificate data (.pfx) in variable
 $certificateData = New-PACertificate $domainName
 
+if (!$certificateData) {
+    $certificateData = Submit-Renewal $domainName
+}
+
 # Clean up HTTP challenge blob after usage
 Remove-AzureStorageBlob -Container $containerName -Context $storageAccountContext -Blob $blobName
 
