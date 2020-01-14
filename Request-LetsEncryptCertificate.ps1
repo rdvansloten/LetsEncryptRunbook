@@ -93,7 +93,13 @@ Start-Sleep -s 60
 
 # Store certificate data (.pfx) in variable
 Write-Output "New-PACertificate"
-New-PACertificate $domainName
+$certificateData = New-PACertificate $domainName
+
+if (!$certificateData) {
+Write-Output "Submit-Renewal"
+Submit-Renewal $domainName
+}
+    
 
 Write-Output "Get-PACertificate"
 Get-PACertificate | fl
