@@ -76,6 +76,8 @@ $authData = $authList | Select-Object @{L='Body';E={Get-KeyAuthorization $_.HTTP
 $filePath = $env:TEMP + "\" + $authData.FileName
 Set-Content -Value $authData.Body -Path $filePath
 
+Write-Output $env:TEMP
+
 # Storage Account settings
 $storageAccount = Get-AzureRmStorageAccount -ResourceGroupName $storageAccountResourceGroupName -Name $storageAccountName
 $storageAccountContext = $storageAccount.Context
