@@ -27,11 +27,9 @@ param(
     [string] $stagingMode
 )
 
-# Set up Azure RunAs connection
 $connectionName = "AzureRunAsConnection"
-
 try {
-    # Get the connection "AzureRunAsConnection"
+    # Get the connection "AzureRunAsConnection "
     $servicePrincipalConnection=Get-AutomationConnection -Name $connectionName         
 
     "Logging in to Azure..."
@@ -40,98 +38,87 @@ try {
         -TenantId $servicePrincipalConnection.TenantId `
         -ApplicationId $servicePrincipalConnection.ApplicationId `
         -CertificateThumbprint $servicePrincipalConnection.CertificateThumbprint 
-}
-catch {
+} catch {
     if (!$servicePrincipalConnection) {
         $errorMessage = "Connection $connectionName not found."
         throw $errorMessage
-    } else {
+    } else{
         Write-Error -Message $_.Exception
         throw $_.Exception
     }
 }
 
-
-# Retrieves from LetsEncrypt Staging server, for testing purposes. Not a valid certificate. Only fires if variable is set
-if ($stagingMode) { 
-    Write-Output "Using LetsEncrypt Staging server"
+# Select the appropriate server
+if ($stagingMode) {
+    Write-Output "Setting server to LetsEncrypt staging"
     Set-PAServer LE_STAGE
 } else {
-    Write-Output "Using LetsEncrypt Production server"
+    Write-Output "Setting server to LetsEncrypt production"
     Set-PAServer LE_PROD
 }
 
-# Create a new account
+# Create new account and order
+Write-Output "Creating new account and order for domain $domainName and email address $emailAddress"
 New-PAAccount -AcceptTOS -Contact $emailAddress -KeyLength 2048 -Force
+New-PAOrder $domainName -Force
 
-# Order certificate
-$newOrder = New-PAOrder $domainName -Force 
-Write-Output "New order: $newOrder"
+# Get authorizations
+Write-Output "Retrieving authorizations for HTTP01"
+$auths = Get-PAOrder | Get-PAAuthorizations
+$authData = $auths | Select @{L='Body';E={Get-KeyAuthorization $_.HTTP01Token (Get-PAAccount)}},
+                            @{L='FileName';E={$($_.HTTP01Token)}}
 
-# Retrieve authorizations and extract HTTP01 token
-$authList = Get-PAOrder | Get-PAAuthorizations
-$authData = $authList | Select-Object @{L='Body';E={Get-KeyAuthorization $_.HTTP01Token (Get-PAAccount)}},@{L='FileName';E={$($_.HTTP01Token)}}
-Write-Output $authData
 
-# Dump gathered info to local file for later usage
+
+# Set local file path for blob
 $filePath = $env:TEMP + "\" + $authData.FileName
+Write-Output "Local file path set to $filePath"
+
+# Create acme-challenge file
+Write-Output "Writing authData to $filePath"
 Set-Content -Value $authData.Body -Path $filePath
 
-Write-Output $env:TEMP
-
-# Storage Account settings
+# Upload acme-challenge file to blob storage
+Write-Output "Connecting to $storageAccountName"
 $storageAccount = Get-AzureRmStorageAccount -ResourceGroupName $storageAccountResourceGroupName -Name $storageAccountName
-$storageAccountContext = $storageAccount.Context
-
-# Create a valid blob for HTTP challenge
 $blobName = ".well-known\acme-challenge\" + $authData.FileName
-Set-AzureStorageBlobContent -File $filePath -Container $containerName -Context $storageAccountContext -Blob $blobName
+$blobContext = $storageAccount.Context
+Write-Output "Creating blob $blobName in context $blobContext"
+Set-AzureStorageBlobContent -File $filePath -Container $blobContainerName -Context $blobContext -Blob $blobName
 
 # Send challenge
-$authList.HTTP01Url | Send-ChallengeAck
+Write-Output "Sending challenge"
+$auths.HTTP01Url | Send-ChallengeAck
 
-# Wait sane period of time for Challenge to resolve (dirty fix)
-Write-Output "Starting wait period"
+# Sane waiting period for challenge
+Write-Output "Waiting for challenge validation (60s)"
 Start-Sleep -s 60
 
-# Store certificate data (.pfx) in variable
-Write-Output "New-PACertificate"
+# Store certificate in variable
+Write-Output "Storing certificate with domain $domainName to variable certificateData"
 $certificateData = New-PACertificate $domainName
 
-if (!$certificateData) {
-Write-Output "Submit-Renewal"
-$certificateData = Submit-Renewal $domainName -NoSkipManualDns
-}
-    
+# Remove storage 
+Write-Output "Removing blob $blobName from container $blobContainerName"
+Remove-AzureStorageBlob -Container $blobContainerName -Context $blobContext -Blob $blobName
 
-Write-Output "Get-PACertificate"
-Get-PACertificate | fl
+# Define App Gateway
+Write-Output "Using App Gateway $appGatewayName"
+$appGateway = Get-AzureRmApplicationGateway -ResourceGroupName $appGatewayResourceGroupName -Name $appGatewayName
 
-# Clean up HTTP challenge blob after usage
-# Remove-AzureStorageBlob -Container $containerName -Context $storageAccountContext -Blob $blobName
+# Retrieve list of current App Gateway certificates
+$certificateList = $(Get-AzureRmApplicationGatewaySslCertificate -ApplicationGateway $appGateway).Name
+Write-Output "Available certificates on $($appGatewayName): `n $($certificateList)"
 
-# Set configuration to push to Application Gateway
-$appGatewayData = Get-AzureRmApplicationGateway -ResourceGroupName $appGatewayResourceGroupName -Name $appGatewayName
-
-# Retrieve list of certificates
-$certificateList = $(Get-AzureRmApplicationGatewaySslCertificate -ApplicationGateway $appGatewayData).Name
-Write-Output "Available certificates on $($appGatewayName): $($certificateList)"
-
-# check if certificate already exists
 if ($certificateList -contains $certificateName) {
-    # Replace existing certificate
-    Write-Output "Replacing existing certificate $certificateName"
-    Write-Output $certificateData.PfxFullChain
-    Write-Output $certificateData.PfxPass
-    Write-Output "---"
-    Write-Output $certificateData
-    Set-AzureRmApplicationGatewaySSLCertificate -Name $certificateName -ApplicationGateway $appGatewayData -CertificateFile $certificateData.PfxFullChain -Password $certificateData.PfxPass
+    Write-Output "Updating existing certificate $certificateName"
+    Set-AzureRmApplicationGatewaySSLCertificate -Name $certificateName -ApplicationGateway $appGateway -CertificateFile $certificateData.PfxFullChain -Password $certificateData.PfxPass
+
 } else {
-    # Create new certificate
-    Write-Output "Installing new certificate $certificateName"
-    Add-AzureRmApplicationGatewaySslCertificate -Name $certificateName -ApplicationGateway $appGatewayData -CertificateFile $certificateData.PfxFullChain -Password $certificateData.PfxPass
+    Write-Output "Creating new certificate $certificateName"
+    New-AzureRmApplicationGatewaySslCertificate -Name $certificateName -ApplicationGateway $appGateway -CertificateFile $certificateData.PfxFullChain -Password $certificateData.PfxPass
 }
 
-# Apply changes to Application Gateway
-Write-Output "Writing new configuration to $appGatewayName"
-Set-AzureRmApplicationGateway -ApplicationGateway $appGatewayData
+# Write configuration back to App Gateway
+Write-Output "Writing updated configuration to $appGateway"
+Set-AzureRmApplicationGateway -ApplicationGateway $appGateway
