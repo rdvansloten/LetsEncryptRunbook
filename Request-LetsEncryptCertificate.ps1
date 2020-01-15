@@ -120,5 +120,5 @@ if ($certificateList -contains $certificateName) {
 }
 
 # Write configuration back to App Gateway
-Write-Output "Writing updated configuration to $appGateway"
+Write-Output "Writing updated configuration to $appGatewayName"
 Set-AzureRmApplicationGateway -ApplicationGateway $appGateway
