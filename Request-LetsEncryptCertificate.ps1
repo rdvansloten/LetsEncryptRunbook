@@ -27,6 +27,7 @@ param(
     [string] $stagingMode
 )
 
+Write-Output "Connecting to AzureRunAsConnection"
 $connectionName = "AzureRunAsConnection"
 try {
     # Get the connection "AzureRunAsConnection "
@@ -98,18 +99,19 @@ Start-Sleep -s 60
 Write-Output "Storing certificate with domain $domainName to variable certificateData"
 $certificateData = New-PACertificate $domainName
 
-# Remove storage 
+# Remove acme-challenge blob from storage 
 Write-Output "Removing blob $blobName from container $blobContainerName"
 Remove-AzureStorageBlob -Container $blobContainerName -Context $blobContext -Blob $blobName
 
-# Define App Gateway
+# Define Application Gateway
 Write-Output "Using App Gateway $appGatewayName"
 $appGateway = Get-AzureRmApplicationGateway -ResourceGroupName $appGatewayResourceGroupName -Name $appGatewayName
 
-# Retrieve list of current App Gateway certificates
+# Retrieve list of current Application Gateway certificates
 $certificateList = $(Get-AzureRmApplicationGatewaySslCertificate -ApplicationGateway $appGateway).Name
 Write-Output "Available certificates on $($appGatewayName): `n $($certificateList)"
 
+# Check for renewal or new certificate
 if ($certificateList -contains $certificateName) {
     Write-Output "Updating existing certificate $certificateName"
     Set-AzureRmApplicationGatewaySSLCertificate -Name $certificateName -ApplicationGateway $appGateway -CertificateFile $certificateData.PfxFullChain -Password $certificateData.PfxPass

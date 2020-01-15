@@ -17,20 +17,20 @@ Azure Automation Runbook to renew LetsEncrypt certificates on Azure Application 
 
 ### Mandatory
 ```PowerShell
-    [string] $emailAddress                     # Email address for renewals
-    [string] $domainName                       # Domain name to request the certificate for (i.e.: test.contoso.com)
-    [string] $storageAccountResourceGroupName  # Resource Group name in which the Storage Account resides
-    [string] $storageAccountName               # Storage Account name
-    [string] $blobContainerName                # Name of the blob container
-    [string] $appGatewayResourceGroupName      # Resource Group name in which the Application Gateway resides
-    [string] $appGatewayName                   # Application Gateway name
-    [string] $certificateName                  # Desired name of the certificate or name of the existing certificate
+[string] $emailAddress                     # Email address for renewals
+[string] $domainName                       # Domain name to request the certificate for (i.e.: test.contoso.com)
+[string] $storageAccountResourceGroupName  # Resource Group name in which the Storage Account resides
+[string] $storageAccountName               # Storage Account name
+[string] $blobContainerName                # Name of the blob container
+[string] $appGatewayResourceGroupName      # Resource Group name in which the Application Gateway resides
+[string] $appGatewayName                   # Application Gateway name
+[string] $certificateName                  # Desired name of the certificate or name of the existing certificate
 
 ```
 
 ### Optional
 ```PowerShell
-    [string] $stagingMode                      # If set to true, will use (invalid) LetsEncrypt certificates for testing purposes
+[string] $stagingMode                      # If set to true, will use (invalid) LetsEncrypt certificates for testing purposes
 ```
 
 ## Contributing
