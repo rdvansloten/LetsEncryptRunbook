@@ -25,6 +25,9 @@ param(
 
     [Parameter(mandatory=$false)]
     [string] $stagingMode,
+    
+    [Parameter(mandatory=$false)]
+    [string] $debugMode,
 
     [Parameter(mandatory=$false)]
     [string] $keyVaultName
@@ -139,7 +142,7 @@ if ($keyVaultName) {
     Set-AzureKeyVaultSecret -VaultName $keyVaultName -Name $certificateName -SecretValue $secretValue
     
     # Get from Key Vault
-    if ($debug) {
+    if ($debugMode) {
         Write-Output "Base64 encoded certificate $certificateName: \n $fileContentEncoded"
         Write-Output "Base64 stored value for $certificateName is: \n $((Get-AzureKeyVaultSecret -vaultName $keyVaultName -name $certificateName).SecretValueText)"
     }
