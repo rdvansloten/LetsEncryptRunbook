@@ -143,8 +143,8 @@ if ($keyVaultName) {
     
     # Get from Key Vault
     if ($debugMode) {
-        Write-Output "Base64 encoded certificate $certificateName: \n $fileContentEncoded"
-        Write-Output "Base64 stored value for $certificateName is: \n $((Get-AzureKeyVaultSecret -vaultName $keyVaultName -name $certificateName).SecretValueText)"
+        Write-Output "Base64 encoded certificate $certificateName: `n $fileContentEncoded"
+        Write-Output "Base64 stored value for $certificateName is: `n $((Get-AzureKeyVaultSecret -vaultName $keyVaultName -name $certificateName).SecretValueText)"
     }
 }
 
