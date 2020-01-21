@@ -90,7 +90,7 @@ Write-Output "Connecting to $storageAccountName"
 $storageAccount = Get-AzureRmStorageAccount -ResourceGroupName $storageAccountResourceGroupName -Name $storageAccountName
 $blobName = ".well-known\acme-challenge\" + $authData.FileName
 $blobContext = $storageAccount.Context
-Write-Output "Creating blob $blobName in context $blobContainerName"
+Write-Output "Creating blob $blobName in container $blobContainerName"
 Set-AzureStorageBlobContent -File $filePath -Container $blobContainerName -Context $blobContext -Blob $blobName -Force
 
 # Send challenge
