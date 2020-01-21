@@ -24,7 +24,10 @@ param(
     [string] $certificateName,
 
     [Parameter(mandatory=$false)]
-    [string] $stagingMode
+    [string] $stagingMode,
+
+    [Parameter(mandatory=$false)]
+    [string] $keyVaultName
 )
 
 Write-Output "Connecting to AzureRunAsConnection"
@@ -84,8 +87,8 @@ Write-Output "Connecting to $storageAccountName"
 $storageAccount = Get-AzureRmStorageAccount -ResourceGroupName $storageAccountResourceGroupName -Name $storageAccountName
 $blobName = ".well-known\acme-challenge\" + $authData.FileName
 $blobContext = $storageAccount.Context
-Write-Output "Creating blob $blobName in context $blobContext"
-Set-AzureStorageBlobContent -File $filePath -Container $blobContainerName -Context $blobContext -Blob $blobName
+Write-Output "Creating blob $blobName in context $blobContainerName"
+Set-AzureStorageBlobContent -File $filePath -Container $blobContainerName -Context $blobContext -Blob $blobName -Force
 
 # Send challenge
 Write-Output "Sending challenge"
@@ -101,7 +104,7 @@ $certificateData = New-PACertificate $domainName
 
 # Remove acme-challenge blob from storage 
 Write-Output "Removing blob $blobName from container $blobContainerName"
-Remove-AzureStorageBlob -Container $blobContainerName -Context $blobContext -Blob $blobName
+#Remove-AzureStorageBlob -Container $blobContainerName -Context $blobContext -Blob $blobName
 
 # Define Application Gateway
 Write-Output "Using App Gateway $appGatewayName"
@@ -118,9 +121,28 @@ if ($certificateList -contains $certificateName) {
 
 } else {
     Write-Output "Creating new certificate $certificateName"
-    New-AzureRmApplicationGatewaySslCertificate -Name $certificateName -ApplicationGateway $appGateway -CertificateFile $certificateData.PfxFullChain -Password $certificateData.PfxPass
+    Add-AzureRmApplicationGatewaySslCertificate -ApplicationGateway $appGateway -Name $certificateName -CertificateFile $certificateData.PfxFullChain -Password $certificateData.PfxPass
 }
 
 # Write configuration back to App Gateway
 Write-Output "Writing updated configuration to $appGatewayName"
 Set-AzureRmApplicationGateway -ApplicationGateway $appGateway
+
+# base64 encode certificate
+$fileContentBytes = get-content $certificateData.PfxFile -Encoding Byte
+$fileContentEncoded = [System.Convert]::ToBase64String($fileContentBytes)
+
+if ($keyVaultName) {
+    # Write key to Key Vault
+    Write-Output "Writing certificate as Secret to Key Vault $keyVaultName"
+    $secretValue = ConvertTo-SecureString $fileContentEncoded -AsPlainText -Force
+    Set-AzureKeyVaultSecret -VaultName $keyVaultName -Name $certificateName -SecretValue $secretValue
+    
+    # Get from Key Vault
+    if ($debug) {
+        Write-Output "Base64 encoded certificate $certificateName: \n $fileContentEncoded"
+        Write-Output "Base64 stored value for $certificateName is: \n $((Get-AzureKeyVaultSecret -vaultName $keyVaultName -name $certificateName).SecretValueText)"
+    }
+}
+
+
