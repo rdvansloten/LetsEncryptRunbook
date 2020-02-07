@@ -132,7 +132,7 @@ Write-Output "Writing updated configuration to $appGatewayName"
 Set-AzureRmApplicationGateway -ApplicationGateway $appGateway
 
 # base64 encode certificate
-$fileContentBytes = get-content $certificateData.PfxFile -Encoding Byte
+$fileContentBytes = get-content $certificateData.PfxFullChain -Encoding Byte
 $fileContentEncoded = [System.Convert]::ToBase64String($fileContentBytes)
 
 if ($keyVaultName) {
