@@ -147,5 +147,3 @@ if ($keyVaultName) {
         Write-Output "Base64 stored value for $($certificateName): `n $((Get-AzureKeyVaultSecret -vaultName $keyVaultName -name $certificateName).SecretValueText)"
     }
 }
-
-
