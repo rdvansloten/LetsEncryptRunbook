@@ -5,9 +5,10 @@ Azure Automation Runbook to renew LetsEncrypt certificates on Azure Application 
 - Azure Storage Account
 - Azure Automation Account
 - Azure Automation Modules
+  - AzureRM.Profile
   - AzureRM.Network
   - AzureRM.Storage
-  - AzureRM.Profile
+  - AzureRM.KeyVault
   - Posh-ACME
 - Azure Application Gateway
   - :80 Listener, redirecting to Storage Account URL
@@ -31,6 +32,7 @@ Azure Automation Runbook to renew LetsEncrypt certificates on Azure Application 
 ### Optional
 ```PowerShell
 [string] $stagingMode                      # If set to true, will use (invalid) LetsEncrypt certificates for testing purposes
+[string] $keyVaultName                     # If set to true, will use Azure Key Vault to store certificate
 ```
 
 ## Contributing
