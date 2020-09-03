@@ -4,16 +4,14 @@ Azure Automation Runbook to renew LetsEncrypt certificates on Azure Application 
 ## Requirements
 - Azure Storage Account
 - Azure Automation Account
+  - AzureRM.Profile
+  - AzureRM.Network
+  - AzureRM.Storage
+  - AzureRM.KeyVault
+  - Posh-ACME
 - Azure Application Gateway
   - :80 Listener, redirecting to Storage Account URL
 - Valid DNS A record
-
-You will need to install the latest versions of the following modules in your Azure Automation Account:
-- AzureRM.Profile
-- AzureRM.Network
-- AzureRM.Storage
-- AzureRM.KeyVault
-- Posh-ACME
 
 
 ## Variables
