@@ -32,7 +32,7 @@ Azure Automation Runbook to renew LetsEncrypt certificates on Azure Application 
 ### Optional
 ```PowerShell
 [string] $stagingMode                      # If set to true, will use (invalid) LetsEncrypt certificates for testing purposes
-[string] $keyVaultName                     # If set to true, will use Azure Key Vault to store certificate
+[string] $keyVaultName                     # If set, will use Azure Key Vault to store certificate
 ```
 
 ## Scheduling/invoking
